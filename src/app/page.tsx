@@ -248,11 +248,11 @@ export default function Home() {
       </header>
 
       <main className="w-full mx-auto px-6 py-8">
-        <section className="mb-8">
+        <section className="mb-8 flex flex-col items-center justify-center">
           <h2 className="text-base font-semibold mb-4 flex items-center w-full justify-center gap-2">
             Add Bookmark
           </h2>
-          <div className="bg-white rounded-xl w-1/2 border border-gray-200 p-5 shadow-sm">
+          <div className="bg-white rounded-xl w-full md:w-1/2 border border-gray-200 p-5 shadow-sm">
             <div className="space-y-4">
               <div>
                 <label
@@ -301,7 +301,7 @@ export default function Home() {
           </div>
         </section>
 
-        <p className="text-xs text-gray-400 mb-4">
+        <p className="text-xs w-full text-center text-gray-400 mb-4">
           Bookmarks sync across tabs and devices in real-time.
         </p>
 
@@ -314,11 +314,11 @@ export default function Home() {
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 w-full items-center justify-center flex flex-col">
               {bookmarks.map((bookmark) => (
                 <div
                   key={bookmark.id}
-                  className="bg-white rounded-xl border border-gray-200 px-5 py-4 shadow-sm flex items-start justify-between gap-4 hover:shadow-md transition-shadow"
+                  className="bg-white rounded-xl border border-gray-200 px-5 w-full md:w-1/2 py-4 shadow-sm flex items-start justify-between gap-4 hover:shadow-md transition-shadow"
                 >
                   <div className="min-w-0 flex-1">
                     <h3 className="font-semibold text-gray-900 truncate">
@@ -386,9 +386,12 @@ export default function Home() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="hover:cursor-pointer">
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
+              className="hover:cursor-pointer"
               onClick={() =>
                 deleteTarget && handleDeleteBookmark(deleteTarget.id)
               }
