@@ -5,12 +5,13 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  console.log("!!! ROUTE HIT !!!");
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const next = url.searchParams.get("next") ?? "/";
+
   try {
     const cookieStore = await cookies();
+
     const ssrClient = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -24,8 +25,8 @@ export async function GET(req: Request) {
               cookiesToSet.forEach(({ name, value, options }) =>
                 cookieStore.set(name, value, options),
               );
-            } catch (err) {
-              console.log(err);
+            } catch {
+              console.log("Error while writing cookie");
             }
           },
         },
@@ -41,12 +42,11 @@ export async function GET(req: Request) {
     if (!error) {
       return NextResponse.redirect(`${url.origin}${next}`);
     }
-    return NextResponse.redirect(`${url.origin}/auth-error`);
+
+    const errorUrl = new URL(`${url.origin}/`);
+    errorUrl.searchParams.set("auth_error", error.message);
+    return NextResponse.redirect(errorUrl.toString());
   } catch (err) {
-    console.error("[auth/callback] error", err);
-    return NextResponse.json(
-      { hit: false, error: String(err) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: String(err) }, { status: 500 });
   }
 }
