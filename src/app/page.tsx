@@ -2,21 +2,13 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import supabaseClient from "@/utils/db";
 import type { User } from "@supabase/supabase-js";
 import type { Bookmark, RealtimeStatus } from "@/types/bookmark";
+import Header from "@/components/Header";
+import AddBookmarkForm from "@/components/AddBookmarkForm";
+import BookmarkCard from "@/components/BookmarkCard";
+import DeleteDialog from "@/components/DeleteDialog";
 
 export default function Home() {
   const router = useRouter();
@@ -27,7 +19,6 @@ export default function Home() {
   const [title, setTitle] = useState("");
   const [adding, setAdding] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Bookmark | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [realtimeStatus, setRealtimeStatus] =
     useState<RealtimeStatus>("connecting");
 
@@ -162,144 +153,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-screen bg-zinc-50 font-sans">
-      <header className="sticky top-0 z-10 bg-white border-b border-gray-200 shadow-sm">
-        <div className="w-full mx-auto px-6 h-14 flex items-center justify-between">
-          <h1 className="font-bold text-lg tracking-tight">
-            Smart Bookmark App
-          </h1>
-          <div className="flex items-center gap-3">
-            <span
-              className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border ${
-                realtimeStatus === "connected"
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : realtimeStatus === "connecting"
-                    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                    : "bg-red-50 text-red-700 border-red-200"
-              }`}
-            >
-              <span
-                className={`size-1.5 rounded-full ${
-                  realtimeStatus === "connected"
-                    ? "bg-green-500"
-                    : realtimeStatus === "connecting"
-                      ? "bg-yellow-500"
-                      : "bg-red-500"
-                }`}
-              />
-              Realtime:{" "}
-              {realtimeStatus.charAt(0).toUpperCase() + realtimeStatus.slice(1)}
-            </span>
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
-              >
-                <Avatar size="default">
-                  <AvatarImage src={avatarUrl} alt={userName} />
-                  <AvatarFallback>
-                    {userName.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium leading-tight">
-                    {userName}
-                  </p>
-                  <p className="text-xs text-gray-400 leading-tight">
-                    {user.email}
-                  </p>
-                </div>
-                <svg
-                  className={`size-4 text-gray-400 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </button>
-
-              {dropdownOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setDropdownOpen(false)}
-                  />
-                  <div className="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
-                    <div className="px-4 py-2 text-sm text-gray-700 font-medium border-b border-gray-100">
-                      {userName}
-                    </div>
-                    <button
-                      onClick={handleSignOut}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 cursor-pointer"
-                    >
-                      Log out
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        userName={userName}
+        email={user.email || ""}
+        avatarUrl={avatarUrl}
+        realtimeStatus={realtimeStatus}
+        onSignOut={handleSignOut}
+      />
 
       <main className="w-full mx-auto px-6 py-8">
-        <section className="mb-8 flex flex-col items-center justify-center">
-          <h2 className="text-base font-semibold mb-4 flex items-center w-full justify-center gap-2">
-            Add Bookmark
-          </h2>
-          <div className="bg-white rounded-xl w-full md:w-1/2 border border-gray-200 p-5 shadow-sm">
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="bookmark-url"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  URL
-                </label>
-                <input
-                  id="bookmark-url"
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="https://example.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
-                  onKeyDown={(e) => e.key === "Enter" && handleAddBookmark()}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="bookmark-title"
-                  className="block text-sm font-medium text-gray-700 mb-1.5"
-                >
-                  Title
-                </label>
-                <input
-                  id="bookmark-title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(sanitizeInput(e.target.value))}
-                  placeholder="Enter bookmark title..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
-                  onKeyDown={(e) => e.key === "Enter" && handleAddBookmark()}
-                />
-              </div>
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleAddBookmark}
-                  disabled={adding || !url.trim()}
-                  className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer px-6"
-                >
-                  {adding ? "Adding..." : "Add Bookmark"}
-                </Button>
-              </div>
-            </div>
-          </div>
-        </section>
+        <AddBookmarkForm
+          url={url}
+          title={title}
+          adding={adding}
+          onUrlChange={setUrl}
+          onTitleChange={(val) => setTitle(sanitizeInput(val))}
+          onSubmit={handleAddBookmark}
+        />
 
         <p className="text-xs w-full text-center text-gray-400 mb-4">
           Bookmarks sync across tabs and devices in real-time.
@@ -316,91 +186,22 @@ export default function Home() {
           ) : (
             <div className="space-y-3 w-full items-center justify-center flex flex-col">
               {bookmarks.map((bookmark) => (
-                <div
+                <BookmarkCard
                   key={bookmark.id}
-                  className="bg-white rounded-xl border border-gray-200 px-5 w-full md:w-1/2 py-4 shadow-sm flex items-start justify-between gap-4 hover:shadow-md transition-shadow"
-                >
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-gray-900 truncate">
-                      {bookmark.title}
-                    </h3>
-                    <a
-                      href={bookmark.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-blue-500 hover:underline truncate block"
-                    >
-                      {bookmark.url}
-                    </a>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Added{" "}
-                      {new Date(bookmark.created_at).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        },
-                      )}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setDeleteTarget(bookmark)}
-                    className="text-gray-300 hover: hover:text-red-500 transition-colors mt-1 cursor-pointer"
-                    aria-label="Delete bookmark"
-                  >
-                    <svg
-                      className="size-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"
-                      />
-                    </svg>
-                  </button>
-                </div>
+                  bookmark={bookmark}
+                  onDelete={setDeleteTarget}
+                />
               ))}
             </div>
           )}
         </section>
       </main>
 
-      <AlertDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
-        <AlertDialogContent size="sm">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Bookmark</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              <strong>{deleteTarget?.title}</strong>? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="hover:cursor-pointer">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              variant="destructive"
-              className="hover:cursor-pointer"
-              onClick={() =>
-                deleteTarget && handleDeleteBookmark(deleteTarget.id)
-              }
-            >
-              Delete Bookmark
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        bookmark={deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteBookmark}
+      />
     </div>
   );
 }
